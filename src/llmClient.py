@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import logging
-from typing import Optional, Dict, Any, AsyncGenerator, Iterator, List
-import datetime
+from typing import Optional, Dict, Any, Iterator, List
 import time
 
 
@@ -61,17 +60,18 @@ class LLMResponse:
             self.model.handle_error(e)
 
         self._on_done()
-    
+
     def _on_start(self):
         self._start = time.monotonic()
 
     def _on_done(self):
-        self._end = time.monotonic()    
+        self._end = time.monotonic()
         self._done = True
+
 
 class LLMClient(ABC):
     """Abstract base class for LLM clients"""
-    
+
     def __init__(self, log_level: int = logging.INFO):
         self.model_id: str = ""
         self.api_key: Optional[str] = None
@@ -115,7 +115,8 @@ class LLMClient(ABC):
     def handle_error(self, error: Exception):
         """
         Default error handling implementation.
-        This method can be overridden by subclasses to provide custom error handling.
+        This method can be overridden
+            by subclasses to provide custom error handling.
         """
         logging.error(f"Default error handling: {error}")
         raise error
@@ -125,4 +126,3 @@ class LLMClient(ABC):
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} '{self.model_id}'>"
-
