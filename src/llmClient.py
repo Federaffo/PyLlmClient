@@ -75,8 +75,6 @@ class LLMClient(ABC):
     def __init__(self, log_level: int = logging.INFO):
         self.model_id: str = ""
         self.api_key: Optional[str] = None
-        self.needs_key: bool = True
-        self.can_stream: bool = False
         self._is_loaded: bool = False
         self._log_level: int = log_level
 

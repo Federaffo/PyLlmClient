@@ -1,7 +1,7 @@
 import logging
 import time
 from typing import Iterator, Optional
-from models import LLMClient
+from src import LLMClient
 
 
 class OpenAIClient(LLMClient):
@@ -24,7 +24,7 @@ class OpenAIClient(LLMClient):
         stream: bool = True,
     ) -> Iterator[str]:
         # Implement OpenAI specific generation
-        response = "this is a very long response"
+        response = "This is a very long response"
         if stream:
             for i in response.split():
                 time.sleep(0.2)  # Simulate response delay
@@ -52,7 +52,7 @@ class AnthropicClient(LLMClient):
         stream: bool = True,
     ) -> Iterator[str]:
         # Implement Anthropic specific generation
-        response = "this is a very long response from anthropic" 
+        response = "This is a very long response from anthropic" 
         if stream:
             for i in response.split():
                 time.sleep(0.1)  # anthropic is faster :)
