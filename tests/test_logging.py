@@ -4,7 +4,7 @@ from pyllmclient.llmClient import LLMResponse, LLMClient
 from pyllmclient.mock_models import OpenAIClient, AnthropicClient
 
 def test_set_log_level(caplog):
-    client = OpenAIClient()
+    client = OpenAIClient(log_level=logging.DEBUG)
     with caplog.at_level(logging.DEBUG):
         client.set_log_level(logging.INFO)
     

@@ -10,21 +10,19 @@ class OpenAIClient(LLMClient):
                  model_id: str = "gpt-4",
                  api_key: Optional[str] = None,
                  config: Optional[LLMConfig] = None,
-                 log_level: int = logging.DEBUG):
+                 log_level: int = logging.INFO):
         if config is None:
             config = LLMConfig(
                 model_id=model_id,
                 api_key=api_key,
-                log_level=log_level
             )
-        super().__init__(config=config)
-        self.can_stream = True
+        super().__init__(config=config, log_level=log_level)
 
     def load_model(self) -> None:
         if self.api_key is None:
             raise ValueError("API key is required")
         # Initialize OpenAI client
-        self.logger.debug(f"Loading {self.model_id}")
+        self.logger.info(f"Loading {self.model_id}")
         self._is_loaded = True
 
     def generate(
@@ -44,24 +42,15 @@ class OpenAIClient(LLMClient):
 
 class AnthropicClient(LLMClient):
     def __init__(self,
-                 model_id: str = "claude-3-5-sonnet-20240620",
-                 api_key: Optional[str] = None,
-                 config: Optional[LLMConfig] = None,
+                 config: LLMConfig,
                  log_level: int = logging.INFO):
-        if config is None:
-            config = LLMConfig(
-                model_id=model_id,
-                api_key=api_key,
-                log_level=log_level
-            )
-        super().__init__(config=config)
-        self.can_stream = True
+        super().__init__(config=config, log_level=log_level)
 
     def load_model(self) -> None:
         if self.api_key is None:
             raise ValueError("API key is required")
         # Initialize Anthropic client
-        self.logger.debug(f"Loading {self.model_id}")
+        self.logger.info(f"Loading {self.model_id}")
         self._is_loaded = True
 
     def generate(

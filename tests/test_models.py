@@ -12,11 +12,13 @@ import logging
 
 @pytest.fixture
 def openai_client():
-    return OpenAIClient(model_id="gpt-4", api_key="test")
+    config = LLMConfig(model_id="gpt-4", api_key="test")
+    return OpenAIClient(config=config)
 
 @pytest.fixture
 def anthropic_client():
-    return AnthropicClient(model_id="claude-3-5-sonnet" , api_key="test")
+    config = LLMConfig(model_id="claude-3-5-sonnet", api_key="test")
+    return AnthropicClient(config=config)
 
 def test_llmresponse_initialization(openai_client):
     response = LLMResponse(openai_client, "Test prompt")
@@ -55,7 +57,7 @@ def test_llmclient_load_model(openai_client):
     assert openai_client._is_loaded is True
 
 def test_llmclient_prompt(openai_client):
-    response = openai_client.prompt("Test prompt")
+    response = openai_client.prompt("Test prompt", stream=False)
     assert isinstance(response, LLMResponse)
 
 def test_llmclient_handle_error(openai_client):
@@ -85,7 +87,6 @@ def test_llmconfig_validation():
     config = LLMConfig(model_id="test-model", api_key="test-key")
     assert config.model_id == "test-model"
     assert config.api_key == "test-key"
-    assert config.log_level == logging.INFO
     assert config.config == {}
 
 def test_llmresponse_model_validation():

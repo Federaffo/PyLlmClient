@@ -6,10 +6,9 @@ import time
 from pydantic import BaseModel, Field
 
 class LLMConfig(BaseModel):
-    """Configurazione base per i client LLM"""
+    """Base configuration for LLM clients"""
     model_id: str = Field(default="")
     api_key: Optional[str] = None
-    log_level: int = Field(default=logging.INFO)
     config: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -22,6 +21,16 @@ class LLMResponseModel(BaseModel):
 
 @dataclass
 class LLMResponse:
+    """Response wrapper for LLM generations.
+    
+    This class handles both streaming and non-streaming responses from LLM models,
+    collecting chunks and providing access to the complete response.
+    
+    Attributes:
+        model (LLMClient): The LLM client instance that generated the response
+        prompt (str): The input prompt used to generate the response
+        stream (bool): Whether the response is streamed or not
+    """
     model: 'LLMClient'
     prompt: str
     stream: bool
@@ -47,10 +56,22 @@ class LLMResponse:
             list(self)
 
     def text(self) -> str:
+        """Returns the complete generated text.
+        
+        Forces completion if the generation is not finished.
+        
+        Returns:
+            str: The complete generated text
+        """
         self._force()
         return "".join(self._chunks)
 
     def to_json(self) -> Dict[str, Any]:
+        """Converts the response to a JSON-serializable dictionary.
+        
+        Returns:
+            Dict[str, Any]: Response data including model ID, text, and duration
+        """
         self._force()
         duration = None
         if self._start and self._end:
@@ -91,9 +112,19 @@ class LLMResponse:
 
 
 class LLMClient(ABC):
-    """Abstract base class for LLM clients"""
+    """Abstract base class for LLM clients.
+    
+    This class provides the basic interface and functionality for implementing
+    specific LLM model clients.
+    
+    Attributes:
+        model_id (str): Identifier for the LLM model
+        api_key (Optional[str]): API key for authentication
+        config (Dict[str, Any]): Additional configuration parameters
+        logger_level (int): Logging level for the client
+    """
 
-    def __init__(self, config: Optional[LLMConfig] = None):
+    def __init__(self, config: Optional[LLMConfig] = None , log_level: int = logging.INFO):
         if config is None:
             config = LLMConfig()
 
@@ -101,7 +132,7 @@ class LLMClient(ABC):
         self.model_id = config.model_id
         self.api_key = config.api_key
         self._is_loaded = False
-        self._log_level = config.log_level
+        self._log_level = log_level
         self.config = config.config
 
         self.set_log_level(self._log_level)
@@ -114,14 +145,14 @@ class LLMClient(ABC):
     @abstractmethod
     def load_model(self) -> None:
         """Load and initialize the model"""
-        self.logger.debug(f"Loading {self.model_id}")
+        self.logger.info(f"Loading {self.model_id}")
         pass
 
     @abstractmethod
     def generate(
         self,
         prompt: str,
-        stream: bool = True,
+        stream: bool,
     ) -> Iterator[str]:
         """Generate response from the model"""
         pass
@@ -129,13 +160,24 @@ class LLMClient(ABC):
     def prompt(
         self,
         prompt: str,
-        stream: bool = True,
+        stream: bool,
     ) -> LLMResponse:
-        """Execute prompt and return structured response"""
+        """Execute a prompt and return a structured response.
+        
+        Args:
+            prompt (str): The input text to send to the model
+            stream (bool): Whether to stream the response or not
+            
+        Returns:
+            LLMResponse: A response object containing the generated text
+            
+        Raises:
+            Exception: Any errors during model loading or generation
+        """
         try:
             if not self._is_loaded:
                 self.load_model()
-            return LLMResponse(self, prompt, stream=True)
+            return LLMResponse(self, prompt, stream=stream)
         except Exception as e:
             self.handle_error(e)
 

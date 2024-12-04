@@ -1,64 +1,88 @@
-# PyLlmClient
 
-## Overview
+# PyLLMClient
 
-PyLlmClient is a Python library designed to interact with language models, providing a streamlined interface for generating text responses. It supports multiple backend models, including OpenAI and Anthropic, and offers features such as streaming responses and error handling.
+PyLLMClient is a Python library designed to simplify interactions with Large Language Models (LLMs). 
+It provides a standardized interface, response handling, and error management for building integrations with LLMs.
+
+## Features
+
+- **Abstract Base Class**: Easily extendable `LLMClient` for custom implementations.
+- **Response Handling**: Collects streaming and non-streaming responses with the `LLMResponse` wrapper.
+- **Configuration Management**: Use `LLMConfig` for simple and structured configurations.
+- **Pydantic Integration**: Leverage Pydantic models for validation and serialization of responses.
+
+## Requirements
+
+- Python 3.8 or higher
+- Dependencies listed in `pyproject.toml`
 
 ## Installation
 
-To install the required dependencies, run:
+To install the library, clone the repository and use `pip`:
 
-bash
-pip install -r requirements.txt
-
-
+```bash
+pip install .
+```
 
 ## Usage
 
 ### Basic Example
 
-Here's a basic example of how to use the PyLlmClient with OpenAI and Anthropic clients:
+```python
+from PyLLMClient.llmclient import LLMClient, LLMConfig
 
-python
-import logging
-from src.mock_models import AnthropicClient, OpenAIClient
+class MyCustomLLM(LLMClient):
+    def load_model(self):
+        self.logger.info(f"Custom LLM {self.model_id} loaded.")
+        self._is_loaded = True
 
-Initialize OpenAI client
-client = OpenAIClient(model_id="gpt-4o", api_key="your-api-key", log_level=logging.INFO)
-response = client.prompt("Your prompt here", stream=True)
-for chunk in response:
-print(chunk, end='', flush=True)
+    def generate(self, prompt: str, stream: bool = True):
+        self.logger.info(f"Generating response for: {prompt}")
+        yield "Mock response from MyCustomLLM"
 
-Initialize Anthropic client
-client = AnthropicClient(model_id="claude-3-5-sonnet-20240620", api_key="your-api-key", log_level=logging.INFO)
-client.set_log_level(logging.DEBUG)
-response = client.prompt("Your prompt here", stream=True)
-for chunk in response:
-print(chunk, end='', flush=True)
+# Configuration
+config = LLMConfig(model_id="custom-llm", api_key="your_api_key")
 
+# Initialize and use the LLM
+client = MyCustomLLM(config=config)
+response = client.prompt("Hello, world!", stream=False)
+print(response.text())
+```
 
-### Running Tests
+## Testing
 
-To run the tests, you can use the following command:
+Run unit tests using `pytest`:
 
+```bash
+pytest
+```
 
-bash
-pytest tests
+Or use Docker for testing:
 
+### Build and Run Docker Tests
 
+1. Build the test image:
 
-This will execute the test suite located in the `tests` directory, ensuring that all components of the library are functioning as expected.
+```bash
+docker build -t pyllmclient-tests .
+```
 
-## Project Structure
+2. Run the tests:
 
-- `src/`: Contains the main source code for the library.
-  - `llmClient.py`: Defines the abstract base class `LLMClient` and the `LLMResponse` class.
-  - `mock_models.py`: Implements the `OpenAIClient` and `AnthropicClient` classes.
-- `tests/`: Contains unit tests for the library.
-- `examples/`: Provides example scripts demonstrating how to use the library.
+```bash
+docker run pyllmclient-tests
+```
 
-## Development
+3. Alternatively, use docker-compose:
 
-### Code Style
+```bash
+docker-compose run tests
+```
 
-The project uses `flake8` for checking PEP8 style compliance. You can run the style check with:
+## Contributing
+
+Contributions are welcome! Please fork the repository, make changes, and submit a pull request.
+
+## License
+
+This library is licensed under the MIT License. See the `LICENSE` file for details.
