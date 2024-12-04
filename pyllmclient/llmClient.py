@@ -1,8 +1,23 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import logging
-from typing import Optional, Dict, Any, Iterator, List
+from typing import Optional, Dict, Any, Iterator, List, Union
 import time
+from pydantic import BaseModel, Field
+
+class LLMConfig(BaseModel):
+    """Configurazione base per i client LLM"""
+    model_id: str = Field(default="")
+    api_key: Optional[str] = None
+    log_level: int = Field(default=logging.INFO)
+    config: Dict[str, Any] = Field(default_factory=dict)
+
+
+class LLMResponseModel(BaseModel):
+    """Modello Pydantic per la risposta LLM"""
+    model_id: str
+    text: str
+    duration: Optional[float] = None
 
 
 @dataclass
@@ -37,10 +52,16 @@ class LLMResponse:
 
     def to_json(self) -> Dict[str, Any]:
         self._force()
-        return {
-            "model_id": self.model.model_id,
-            "text": self.text(),
-        }
+        duration = None
+        if self._start and self._end:
+            duration = self._end - self._start
+        
+        response = LLMResponseModel(
+            model_id=self.model.model_id,
+            text=self.text(),
+            duration=duration
+        )
+        return response.model_dump()
 
     def __iter__(self) -> Iterator[str]:
         self._on_start()
@@ -49,7 +70,7 @@ class LLMResponse:
             return
 
         try:
-            logging.info(f"Prompting {self.model.model_id}")
+            self.model.logger.info(f"Prompting {self.model.model_id}")
             for chunk in self.model.generate(
                 self.prompt,
                 stream=self.stream,
@@ -72,22 +93,28 @@ class LLMResponse:
 class LLMClient(ABC):
     """Abstract base class for LLM clients"""
 
-    def __init__(self, log_level: int = logging.INFO):
-        self.model_id: str = ""
-        self.api_key: Optional[str] = None
-        self._is_loaded: bool = False
-        self._log_level: int = log_level
+    def __init__(self, config: Optional[LLMConfig] = None):
+        if config is None:
+            config = LLMConfig()
+
+        self.logger = logging.getLogger(__name__)
+        self.model_id = config.model_id
+        self.api_key = config.api_key
+        self._is_loaded = False
+        self._log_level = config.log_level
+        self.config = config.config
 
         self.set_log_level(self._log_level)
 
     def set_log_level(self, level: int):
+        self.logger.debug(f"Setting log level to {level}")
         self._log_level = level
-        logging.basicConfig(level=self._log_level)
+        self.logger.setLevel(level)
 
     @abstractmethod
     def load_model(self) -> None:
         """Load and initialize the model"""
-        logging.debug(f"Loading {self.model_id}")
+        self.logger.debug(f"Loading {self.model_id}")
         pass
 
     @abstractmethod
@@ -118,7 +145,7 @@ class LLMClient(ABC):
         This method can be overridden
             by subclasses to provide custom error handling.
         """
-        logging.error(f"Default error handling: {error}")
+        self.logger.error(f"Default error handling: {error}")
         raise error
 
     def __str__(self) -> str:

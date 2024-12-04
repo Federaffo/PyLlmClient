@@ -1,0 +1,27 @@
+title = "PyLlmClient"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "PyLlmClient"
+version = "0.1.0"
+description = "A library providing an abstract base class for LLM clients, enabling interaction with language models."
+authors = [{ name = "Federico Raffoni", email = "federicoraffoni@gmail.com" }]
+license = { file = "LICENSE" }
+readme = "README.md"
+requires-python = ">=3.6"
+keywords = ["llm"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[tool.setuptools]
+packages = ["pyllmclient"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+pyls = ["structure.json"]

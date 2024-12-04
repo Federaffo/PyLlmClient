@@ -1,23 +1,30 @@
 import logging
 import time
 from typing import Iterator, Optional
-from src import LLMClient
+from pyllmclient import LLMClient
+from pyllmclient.llmClient import LLMConfig 
 
 
 class OpenAIClient(LLMClient):
-    def __init__(self, model_id: str = "gpt-4",
+    def __init__(self, 
+                 model_id: str = "gpt-4",
                  api_key: Optional[str] = None,
+                 config: Optional[LLMConfig] = None,
                  log_level: int = logging.DEBUG):
-        super().__init__(log_level=log_level)
-        self.model_id = model_id
-        self.api_key = api_key
+        if config is None:
+            config = LLMConfig(
+                model_id=model_id,
+                api_key=api_key,
+                log_level=log_level
+            )
+        super().__init__(config=config)
         self.can_stream = True
 
     def load_model(self) -> None:
         if self.api_key is None:
             raise ValueError("API key is required")
         # Initialize OpenAI client
-        logging.debug(f"Loading {self.model_id}")
+        self.logger.debug(f"Loading {self.model_id}")
         self._is_loaded = True
 
     def generate(
@@ -36,19 +43,25 @@ class OpenAIClient(LLMClient):
 
 
 class AnthropicClient(LLMClient):
-    def __init__(self, model_id: str = "claude-3-5-sonnet-20240620",
+    def __init__(self,
+                 model_id: str = "claude-3-5-sonnet-20240620",
                  api_key: Optional[str] = None,
+                 config: Optional[LLMConfig] = None,
                  log_level: int = logging.INFO):
-        super().__init__(log_level)
-        self.model_id = model_id
-        self.api_key = api_key
+        if config is None:
+            config = LLMConfig(
+                model_id=model_id,
+                api_key=api_key,
+                log_level=log_level
+            )
+        super().__init__(config=config)
         self.can_stream = True
 
     def load_model(self) -> None:
         if self.api_key is None:
             raise ValueError("API key is required")
         # Initialize Anthropic client
-        logging.debug(f"Loading {self.model_id}")
+        self.logger.debug(f"Loading {self.model_id}")
         self._is_loaded = True
 
     def generate(
