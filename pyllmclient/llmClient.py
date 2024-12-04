@@ -34,15 +34,17 @@ class LLMResponse:
     model: 'LLMClient'
     prompt: str
     stream: bool
+    max_tokens: int
     _done: bool = False
     _chunks: List[str] = None
     _start: Optional[float] = None
     _end: Optional[float] = None
 
-    def __init__(self, model: 'LLMClient', prompt: str, stream: bool = True):
+    def __init__(self, model: 'LLMClient', prompt: str, stream: bool, max_tokens: int):
         self.model = model
         self.prompt = prompt
         self.stream = stream
+        self.max_tokens = max_tokens
         self._done = False
         self._chunks = []
         self._start = None
@@ -161,12 +163,14 @@ class LLMClient(ABC):
         self,
         prompt: str,
         stream: bool,
+        max_tokens: int = 256,
     ) -> LLMResponse:
         """Execute a prompt and return a structured response.
         
         Args:
             prompt (str): The input text to send to the model
             stream (bool): Whether to stream the response or not
+            max_tokens (int): Maximum number of tokens to generate
             
         Returns:
             LLMResponse: A response object containing the generated text
@@ -177,7 +181,7 @@ class LLMClient(ABC):
         try:
             if not self._is_loaded:
                 self.load_model()
-            return LLMResponse(self, prompt, stream=stream)
+            return LLMResponse(self, prompt, stream=stream, max_tokens=max_tokens)
         except Exception as e:
             self.handle_error(e)
 

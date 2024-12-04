@@ -21,7 +21,7 @@ def anthropic_client():
     return AnthropicClient(config=config)
 
 def test_llmresponse_initialization(openai_client):
-    response = LLMResponse(openai_client, "Test prompt")
+    response = LLMResponse(openai_client, "Test prompt", stream=True, max_tokens=256)
     assert response.model == openai_client
     assert response.prompt == "Test prompt"
     assert response.stream is True
@@ -29,13 +29,13 @@ def test_llmresponse_initialization(openai_client):
     assert response._chunks == []
 
 def test_llmresponse_text(openai_client):
-    response = LLMResponse(openai_client, "Test prompt")
+    response = LLMResponse(openai_client, "Test prompt", stream=True, max_tokens=256)
     response._chunks = ["Hello", " ", "world"]
     response._done = True
     assert response.text() == "Hello world"
 
 def test_llmresponse_to_json(openai_client):
-    response = LLMResponse(openai_client, "Test prompt")
+    response = LLMResponse(openai_client, "Test prompt", stream=True, max_tokens=256)
     response._chunks = ["Hello", " ", "world"]
     response._done = True
     response._start = 1000
@@ -47,7 +47,7 @@ def test_llmresponse_to_json(openai_client):
     assert json_response["duration"] == 1.0
 
 def test_llmresponse_iteration(openai_client):
-    response = LLMResponse(openai_client, "Test prompt")
+    response = LLMResponse(openai_client, "Test prompt", stream=True, max_tokens=256)
     response._chunks = ["Hello", " ", "world"]
     response._done = True
     assert list(response) == ["Hello", " ", "world"]
